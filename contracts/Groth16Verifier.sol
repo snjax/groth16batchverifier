@@ -39,7 +39,10 @@ library Groth16Verifier {
 
   /// @return the product of a point on G1 and a scalar, i.e.
   /// p == p.scalar_mul(1) and p.addition(p) == p.scalar_mul(2) for all points p.
-  function scalar_mul(G1Point memory p, uint s) internal view returns (G1Point memory r) {
+  function scalar_mul(G1Point memory p, uint s) internal view returns (G1Point) {
+    if(s==0) return G1Point(0,0);
+    if(s==1) return p;
+    G1Point memory t;
     uint[3] memory input;
     input[0] = p.X;
     input[1] = p.Y;
@@ -47,11 +50,12 @@ library Groth16Verifier {
     bool success;
     /* solium-disable-next-line */
     assembly {
-      success := staticcall(sub(gas, 2000), 7, input, 0x80, r, 0x60)
+      success := staticcall(sub(gas, 2000), 7, input, 0x80, t, 0x60)
       // Use "invalid" to make gas estimation work
       switch success case 0 { invalid() }
     }
     require (success);
+    return t;
   }
 
 
